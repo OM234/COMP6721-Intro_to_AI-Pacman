@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -18,6 +18,8 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+import searchAgents
+
 
 class SearchProblem:
     """
@@ -74,8 +76,7 @@ def tinyMazeSearch(problem):
 
 
 def genericSearch(problem, path_ds, actions_ds):
-
-    visited = set()
+    visited = []
     actions_ds.push(list())
     path_ds.push(problem.getStartState())
 
@@ -89,15 +90,12 @@ def genericSearch(problem, path_ds, actions_ds):
 
         if curr_state not in visited:
             successors = problem.getSuccessors(curr_state)
-
-        visited.add(curr_state)
-
-        for successor in successors:
-            if successor[0] not in visited:
-                new_actions = actions.copy()
-                new_actions.append(successor[1])
-                actions_ds.push(new_actions)
-                path_ds.push(successor[0])
+            visited.append(curr_state)
+            for successor in successors:
+                if successor[0] not in visited:
+                    new_actions = actions + [successor[1]]
+                    actions_ds.push(new_actions)
+                    path_ds.push(successor[0])
 
     return False
 
@@ -119,7 +117,6 @@ def depthFirstSearch(problem):
     return genericSearch(problem, util.Stack(), util.Stack())
 
 
-
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
@@ -132,7 +129,7 @@ def uniformCostSearch(problem):
     path_ds = util.PriorityQueue()
     actions_ds = util.PriorityQueue()
     costs_ds = util.PriorityQueue()
-    visited = set()
+    visited = []
 
     costs_ds.push(0, 0)
     actions_ds.push(list(), 0)
@@ -149,19 +146,18 @@ def uniformCostSearch(problem):
 
         if curr_state not in visited:
             successors = problem.getSuccessors(curr_state)
-
-        visited.add(curr_state)
-
-        for successor in successors:
-            if successor[0] not in visited:
-                total_cost = successor[2] + cost
-                new_actions = actions.copy()
-                new_actions.append(successor[1])
-                actions_ds.push(new_actions, total_cost)
-                path_ds.push(successor[0], total_cost)
-                costs_ds.push(total_cost, total_cost)
+            visited.append(curr_state)
+            for successor in successors:
+                if successor[0] not in visited:
+                    total_cost = successor[2] + cost
+                    new_actions = actions.copy()
+                    new_actions.append(successor[1])
+                    actions_ds.push(new_actions, total_cost)
+                    path_ds.push(successor[0], total_cost)
+                    costs_ds.push(total_cost, total_cost)
 
     return False
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -173,8 +169,37 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    path_ds = util.PriorityQueue()
+    actions_ds = util.PriorityQueue()
+    costs_ds = util.PriorityQueue()
+    visited = []
+
+    actions_ds.push(list(), 0)
+    path_ds.push(problem.getStartState(), 0)
+
+    while not path_ds.isEmpty():
+
+        curr_state = path_ds.pop()
+        actions = actions_ds.pop()
+
+        if problem.isGoalState(curr_state):
+            # print(actions)
+            # input()
+            return actions
+
+        if curr_state not in visited:
+            successors = problem.getSuccessors(curr_state)
+            visited.append(curr_state)
+            for successor in successors:
+                if successor[0] not in visited:
+                    total_cost = successor[2] + problem.getCostOfActions(actions) + heuristic(successor[0], problem)
+                    new_actions = actions.copy()
+                    new_actions.append(successor[1])
+                    actions_ds.push(new_actions, total_cost)
+                    path_ds.push(successor[0], total_cost)
+
+    return actions
 
 
 # Abbreviations
